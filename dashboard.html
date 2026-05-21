@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduCRM — Панель управления</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#08090d;--s1:#0f1117;--s2:#161920;--s3:#1d2028;
+  --b1:#1f2330;--b2:#2a2f3e;
+  --gold:#f5c842;--green:#3ddc84;--red:#ff4d6d;--blue:#4d9fff;--purple:#9b6dff;
+  --text:#eceef4;--muted:#5a6070;--muted2:#8892a0;
+  --r:10px;--r2:14px;
+}
+body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+/* ─ LOGIN ─ */
+#login-screen{
+  position:fixed;inset:0;background:var(--bg);z-index:9999;
+  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:0;
+}
+.login-box{
+  background:var(--s1);border:1px solid var(--b1);border-radius:20px;
+  padding:48px 40px;width:400px;max-width:95vw;text-align:center;
+}
+.login-logo{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:var(--gold);letter-spacing:-1px;margin-bottom:4px}
+.login-sub{font-size:13px;color:var(--muted2);margin-bottom:36px}
+.login-label{font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);margin-bottom:14px;display:block}
+.who-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.who-btn{
+  background:var(--s2);border:1px solid var(--b1);border-radius:var(--r2);
+  padding:18px 12px;cursor:pointer;transition:all .15s;
+  font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:var(--text);
+}
+.who-btn:hover{border-color:var(--gold);color:var(--gold);transform:translateY(-2px)}
+.who-btn .who-role{font-family:'Manrope',sans-serif;font-size:11px;font-weight:500;color:var(--muted2);margin-top:4px;display:block}
+
+/* ─ LAYOUT ─ */
+.app{display:grid;grid-template-columns:230px 1fr;min-height:100vh}
+.sidebar{
+  background:var(--s1);border-right:1px solid var(--b1);
+  padding:24px 14px;display:flex;flex-direction:column;gap:4px;
+  position:sticky;top:0;height:100vh;overflow-y:auto;
+}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:var(--gold);
+  padding:0 8px 20px;border-bottom:1px solid var(--b1);margin-bottom:12px;letter-spacing:-.5px;
+  display:flex;align-items:center;gap:8px}
+.logo-who{font-size:11px;color:var(--muted2);font-family:'Manrope',sans-serif;font-weight:500;margin-top:3px}
+.nav-sec{font-size:10px;font-weight:700;letter-spacing:1.2px;color:var(--muted);
+  padding:14px 10px 5px;text-transform:uppercase}
+.nav{
+  display:flex;align-items:center;gap:9px;padding:9px 10px;
+  border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;
+  color:var(--muted2);transition:all .15s;border:none;background:none;width:100%;text-align:left;
+}
+.nav:hover{background:var(--s2);color:var(--text)}
+.nav.on{background:var(--s2);color:var(--gold)}
+.nav .ic{font-size:15px;width:20px;text-align:center}
+.nbadge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:700;
+  padding:2px 6px;border-radius:99px;min-width:18px;text-align:center}
+.nbadge.b{background:var(--blue)}
+.nbadge.g{background:var(--green)}
+.user-chip{
+  margin-top:auto;background:var(--s2);border:1px solid var(--b1);border-radius:8px;
+  padding:12px;display:flex;align-items:center;gap:10px;
+}
+.user-av{width:34px;height:34px;border-radius:50%;background:var(--gold);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:#08090d;flex-shrink:0}
+.user-name{font-size:13px;font-weight:700}
+.user-role{font-size:11px;color:var(--muted2)}
+.logout{margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:4px}
+.logout:hover{color:var(--red)}
+
+/* ─ MAIN ─ */
+.main{padding:32px 36px;overflow-y:auto;max-width:1300px}
+.page{display:none}
+.page.on{display:block;animation:fi .2s ease}
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ─ PAGE HEADER ─ */
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;gap:16px;flex-wrap:wrap}
+.pt{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;letter-spacing:-1px}
+.ps{font-size:13px;color:var(--muted2);margin-top:3px}
+.ph-actions{display:flex;gap:10px;flex-wrap:wrap}
+
+/* ─ STATS ─ */
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.sc{
+  background:var(--s1);border:1px solid var(--b1);border-radius:var(--r2);
+  padding:18px 20px;position:relative;overflow:hidden;cursor:default;
+  transition:border-color .15s;
+}
+.sc:hover{border-color:var(--b2)}
+.sc-line{position:absolute;bottom:0;left:0;right:0;height:2px}
+.sc-num{font-family:'Syne',sans-serif;font-size:34px;font-weight:800;letter-spacing:-2px;line-height:1}
+.sc-lbl{font-size:11px;color:var(--muted2);margin-top:5px;font-weight:600;letter-spacing:.3px}
+.sc-icon{position:absolute;right:18px;top:18px;font-size:22px;opacity:.25}
+
+/* ─ CARDS ─ */
+.card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r2);padding:20px}
+.card h3{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:14px;
+  display:flex;align-items:center;gap:8px}
+
+/* ─ BUTTONS ─ */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;
+  border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;
+  border:none;transition:all .15s;font-family:'Manrope',sans-serif;white-space:nowrap}
+.bp{background:var(--gold);color:#08090d}
+.bp:hover{background:#e8bb38}
+.bg{background:var(--s2);color:var(--text);border:1px solid var(--b1)}
+.bg:hover{border-color:var(--gold);color:var(--gold)}
+.br{background:rgba(255,77,109,.12);color:var(--red);border:1px solid rgba(255,77,109,.2)}
+.br:hover{background:rgba(255,77,109,.2)}
+.bb{background:rgba(77,159,255,.12);color:var(--blue);border:1px solid rgba(77,159,255,.2)}
+.bsm{padding:5px 10px;font-size:12px}
+
+/* ─ BADGES ─ */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;
+  border-radius:99px;font-size:11px;font-weight:700;letter-spacing:.3px;white-space:nowrap}
+.b-pending{background:rgba(90,96,112,.2);color:var(--muted2)}
+.b-inprogress{background:rgba(245,200,66,.15);color:var(--gold)}
+.b-done{background:rgba(61,220,132,.15);color:var(--green)}
+.b-cancelled{background:rgba(255,77,109,.12);color:var(--red)}
+.b-new{background:rgba(90,96,112,.2);color:var(--muted2)}
+.b-contact{background:rgba(77,159,255,.15);color:var(--blue)}
+.b-demo{background:rgba(155,109,255,.15);color:var(--purple)}
+.b-signed{background:rgba(61,220,132,.15);color:var(--green)}
+.b-refused{background:rgba(255,77,109,.12);color:var(--red)}
+.b-high{background:rgba(255,77,109,.12);color:var(--red)}
+.b-medium{background:rgba(245,200,66,.12);color:var(--gold)}
+.b-low{background:rgba(61,220,132,.12);color:var(--green)}
+
+/* ─ KANBAN ─ */
+.board{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.kcol{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r2);padding:14px;min-height:200px}
+.kch{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--b1)}
+.kct{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted2)}
+.kcc{background:var(--s2);color:var(--muted2);font-size:11px;font-weight:700;
+  padding:2px 8px;border-radius:99px}
+.tc{
+  background:var(--s2);border:1px solid var(--b1);border-radius:var(--r);
+  padding:13px;margin-bottom:8px;cursor:pointer;transition:all .15s;
+}
+.tc:hover{border-color:var(--gold);box-shadow:0 0 0 1px rgba(245,200,66,.1)}
+.tc-name{font-size:13px;font-weight:600;line-height:1.4;margin-bottom:8px}
+.tc-foot{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap}
+.tc-who{font-size:11px;color:var(--muted2);background:var(--s1);padding:2px 7px;border-radius:99px}
+.tc-metas{display:flex;align-items:center;gap:5px}
+.prio{width:6px;height:6px;border-radius:50%}
+.prio.high{background:var(--red)}
+.prio.medium{background:var(--gold)}
+.prio.low{background:var(--green)}
+.tc-attach{font-size:10px;color:var(--muted);margin-top:5px;display:flex;align-items:center;gap:3px}
+
+/* ─ TABLE ─ */
+.tw{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r2);overflow:hidden}
+table{width:100%;border-collapse:collapse}
+thead{background:var(--s2)}
+th{text-align:left;padding:11px 14px;font-size:10px;font-weight:700;letter-spacing:1px;
+  text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--b1)}
+td{padding:12px 14px;font-size:13px;border-bottom:1px solid var(--b1);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr{cursor:pointer;transition:background .1s}
+tbody tr:hover td{background:var(--s2)}
+td strong{font-weight:600}
+
+/* ─ MODAL ─ */
+.ov{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);
+  z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(6px);
+  padding:20px;
+}
+.ov.on{display:flex}
+.modal{
+  background:var(--s1);border:1px solid var(--b1);border-radius:18px;
+  padding:28px;width:560px;max-width:100%;max-height:90vh;overflow-y:auto;
+}
+.modal h2{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;margin-bottom:22px}
+.modal.wide{width:700px}
+.fg{margin-bottom:14px}
+label{display:block;font-size:11px;font-weight:700;color:var(--muted2);margin-bottom:5px;
+  letter-spacing:.5px;text-transform:uppercase}
+input,select,textarea{
+  width:100%;background:var(--s2);border:1px solid var(--b1);border-radius:8px;
+  padding:10px 12px;color:var(--text);font-family:'Manrope',sans-serif;
+  font-size:13px;transition:border-color .15s;outline:none;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--gold)}
+textarea{resize:vertical;min-height:72px}
+select option{background:var(--s2)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ma{display:flex;gap:10px;margin-top:20px}
+
+/* ─ DETAIL PANELS ─ */
+.det-title{font-family:'Syne',sans-serif;font-size:21px;font-weight:700;line-height:1.3;margin-bottom:6px}
+.det-desc{font-size:13px;color:var(--muted2);line-height:1.6;margin-bottom:16px}
+.det-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.di{background:var(--s2);border-radius:8px;padding:12px}
+.di label{font-size:10px;color:var(--muted);font-weight:700;letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:6px}
+.di select,.di input{background:transparent;border:none;padding:0;font-size:13px;color:var(--text);cursor:pointer;width:100%}
+
+/* ─ COMMENTS ─ */
+.cs h4{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  color:var(--muted);margin-bottom:10px;margin-top:18px}
+.cm{background:var(--s2);border-radius:8px;padding:11px;margin-bottom:7px;border-left:3px solid var(--b2)}
+.cm-who{font-size:11px;font-weight:700;color:var(--gold);margin-bottom:3px}
+.cm-text{font-size:13px;line-height:1.5}
+.cm-time{font-size:10px;color:var(--muted);margin-top:3px}
+.ci-row{display:flex;gap:8px;margin-top:8px}
+.ci-row input{flex:1}
+
+/* ─ FILES ─ */
+.file-zone{
+  border:2px dashed var(--b2);border-radius:10px;padding:24px;text-align:center;
+  cursor:pointer;transition:all .2s;margin-bottom:12px;
+}
+.file-zone:hover,.file-zone.drag{border-color:var(--gold);background:rgba(245,200,66,.04)}
+.file-zone p{font-size:13px;color:var(--muted2)}
+.file-zone small{font-size:11px;color:var(--muted);margin-top:4px;display:block}
+.fi-list{display:flex;flex-direction:column;gap:6px}
+.fi-item{
+  background:var(--s2);border:1px solid var(--b1);border-radius:8px;
+  padding:10px 14px;display:flex;align-items:center;gap:10px;
+}
+.fi-icon{font-size:20px;flex-shrink:0}
+.fi-info{flex:1;min-width:0}
+.fi-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fi-meta{font-size:11px;color:var(--muted2)}
+.fi-actions{display:flex;gap:6px}
+
+/* ─ REPORTS ─ */
+.report-card{
+  background:var(--s2);border:1px solid var(--b1);border-radius:var(--r2);
+  padding:16px;margin-bottom:12px;
+}
+.report-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.report-av{width:32px;height:32px;border-radius:50%;background:var(--gold);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-weight:800;font-size:13px;color:#08090d;flex-shrink:0}
+.report-who{font-size:13px;font-weight:700}
+.report-time{font-size:11px;color:var(--muted2)}
+.report-text{font-size:13px;line-height:1.6;color:var(--text)}
+.report-files{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.report-file{
+  background:var(--s1);border:1px solid var(--b1);border-radius:6px;
+  padding:4px 10px;font-size:11px;display:flex;align-items:center;gap:5px;cursor:pointer;
+}
+.report-file:hover{border-color:var(--gold);color:var(--gold)}
+
+/* ─ ACTIVITY FEED ─ */
+.feed-item{
+  display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--b1);
+}
+.feed-item:last-child{border-bottom:none}
+.feed-dot{width:8px;height:8px;border-radius:50%;background:var(--gold);
+  flex-shrink:0;margin-top:5px}
+.feed-body{flex:1}
+.feed-text{font-size:13px;line-height:1.4}
+.feed-text b{color:var(--gold)}
+.feed-time{font-size:11px;color:var(--muted);margin-top:2px}
+
+/* ─ PROGRESS ─ */
+.pb{height:4px;background:var(--b1);border-radius:99px;overflow:hidden;margin-top:6px}
+.pf{height:100%;background:var(--green);border-radius:99px;transition:width .4s}
+
+/* ─ DASH GRID ─ */
+.dg{display:grid;grid-template-columns:1.6fr 1fr;gap:16px;margin-top:20px}
+.tr-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:9px 0;border-bottom:1px solid var(--b1);cursor:pointer;
+}
+.tr-row:last-child{border-bottom:none}
+.tr-row:hover .tr-name{color:var(--gold)}
+.tr-name{font-size:13px;font-weight:500}
+.tr-r{display:flex;align-items:center;gap:7px}
+
+/* ─ TEAM GRID ─ */
+.tg{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.team-card{
+  background:var(--s1);border:1px solid var(--b1);border-radius:var(--r2);padding:22px;
+}
+.tc-hdr{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.tc-av{
+  width:46px;height:46px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:#08090d;flex-shrink:0;
+}
+.tc-nm{font-weight:700;font-size:15px}
+.tc-rl{font-size:11px;color:var(--muted2);margin-top:2px}
+.tc-nums{display:flex;gap:20px;margin-bottom:12px}
+.tc-n .n{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;line-height:1}
+.tc-n .l{font-size:11px;color:var(--muted2);margin-top:2px}
+.tc-tasks{display:flex;flex-direction:column;gap:4px;margin-top:12px}
+.tc-task{font-size:12px;display:flex;align-items:center;gap:6px}
+
+/* ─ EMPTY ─ */
+.empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:14px}
+.empty-big{font-size:32px;margin-bottom:8px}
+
+/* ─ TABS ─ */
+.tabs{display:flex;gap:4px;background:var(--s2);border-radius:10px;padding:4px;
+  margin-bottom:20px;width:fit-content;border:1px solid var(--b1)}
+.tab{padding:7px 16px;border-radius:7px;font-size:13px;font-weight:600;
+  cursor:pointer;color:var(--muted2);transition:all .15s;border:none;background:none;font-family:'Manrope',sans-serif}
+.tab.on{background:var(--s1);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.3)}
+
+/* ─ NOTIFICATION ─ */
+.notif{
+  position:fixed;bottom:24px;right:24px;z-index:999;
+  background:var(--s2);border:1px solid var(--green);border-radius:10px;
+  padding:13px 18px;font-size:13px;font-weight:500;color:var(--green);
+  transform:translateY(80px);opacity:0;transition:all .3s;pointer-events:none;
+}
+.notif.show{transform:none;opacity:1}
+
+/* ─ RESPONSIVE ─ */
+@media(max-width:900px){
+  .app{grid-template-columns:1fr}
+  .sidebar{position:fixed;left:-240px;z-index:50;transition:left .25s;height:100vh}
+  .sidebar.open{left:0}
+  .sg{grid-template-columns:1fr 1fr}
+  .board{grid-template-columns:1fr 1fr}
+  .dg{grid-template-columns:1fr}
+  .main{padding:20px 16px}
+  .ham{display:flex!important}
+}
+.ham{
+  display:none;position:fixed;top:14px;left:14px;z-index:60;
+  background:var(--s1);border:1px solid var(--b1);border-radius:8px;
+  padding:8px;cursor:pointer;gap:4px;align-items:center;flex-direction:column;
+}
+.ham span{display:block;width:17px;height:2px;background:var(--text);border-radius:2px}
+
+/* ─ FILE SHARE specific ─ */
+.storage-bar{background:var(--s2);border-radius:99px;height:6px;overflow:hidden;margin-top:6px}
+.storage-fill{height:100%;background:var(--gold);border-radius:99px;transition:width .4s}
+.storage-fill.warn{background:var(--red)}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">EduCRM</div>
+    <div class="login-sub">Запуск в Чирчике · Панель управления</div>
+    <span class="login-label">Кто вы?</span>
+    <div class="who-grid">
+      <button class="who-btn" onclick="login('Карим','Основатель / Dev','#f5c842')">
+        🚀 Карим
+        <span class="who-role">Основатель · Полный доступ</span>
+      </button>
+      <button class="who-btn" onclick="login('Релан','Маркетинг','#4d9fff')">
+        📢 Релан
+        <span class="who-role">Маркетинг · Чирчик</span>
+      </button>
+    </div>
+    <div style="font-size:11px;color:var(--muted)">Данные сохраняются в браузере</div>
+  </div>
+</div>
+
+<!-- ══ HAMBURGER ══ -->
+<button class="ham" id="ham" onclick="document.getElementById('sidebar').classList.toggle('open')">
+  <span></span><span></span><span></span>
+</button>
+
+<!-- ══ APP ══ -->
+<div class="app">
+<aside class="sidebar" id="sidebar">
+  <div class="logo">
+    <span>⚡</span>
+    <div>
+      <div>EduCRM</div>
+      <div class="logo-who" id="sb-who"></div>
+    </div>
+  </div>
+
+  <div class="nav-sec">Обзор</div>
+  <button class="nav on" onclick="goTo('dash',this)"><span class="ic">📊</span>Дашборд</button>
+
+  <div class="nav-sec">Работа</div>
+  <button class="nav" onclick="goTo('tasks',this)"><span class="ic">✅</span>Задачи<span class="nbadge" id="nb-tasks">0</span></button>
+  <button class="nav" onclick="goTo('leads',this)"><span class="ic">🎯</span>Лиды<span class="nbadge b" id="nb-leads">0</span></button>
+  <button class="nav" onclick="goTo('reports',this)"><span class="ic">📝</span>Отчёты<span class="nbadge g" id="nb-rep">0</span></button>
+  <button class="nav" onclick="goTo('files',this)"><span class="ic">📁</span>Файлы</button>
+
+  <div class="nav-sec">Команда</div>
+  <button class="nav" onclick="goTo('team',this)"><span class="ic">👥</span>Команда</button>
+
+  <div class="user-chip" style="margin-top:auto;margin-bottom:0">
+    <div class="user-av" id="u-av">К</div>
+    <div>
+      <div class="user-name" id="u-name">—</div>
+      <div class="user-role" id="u-role">—</div>
+    </div>
+    <button class="logout" onclick="logout()" title="Сменить пользователя">⇄</button>
+  </div>
+</aside>
+
+<main class="main">
+
+<!-- ══ DASHBOARD ══ -->
+<div id="page-dash" class="page on">
+  <div class="ph">
+    <div>
+      <div class="pt">🚀 Запуск в Чирчике</div>
+      <div class="ps" id="dash-date"></div>
+    </div>
+    <div class="ph-actions">
+      <button class="btn bg bsm" onclick="openM('mTask')">+ Задача</button>
+      <button class="btn bp bsm" onclick="openM('mLead')">+ Лид</button>
+    </div>
+  </div>
+  <div class="sg">
+    <div class="sc" onclick="goTo('tasks',document.querySelector('.nav:nth-of-type(3)'))">
+      <div class="sc-icon">✅</div>
+      <div class="sc-num" id="st-tasks">0</div>
+      <div class="sc-lbl">Всего задач</div>
+      <div class="pb" style="margin-top:10px"><div class="pf" id="st-prog" style="width:0%"></div></div>
+      <div class="sc-line" style="background:var(--gold)"></div>
+    </div>
+    <div class="sc">
+      <div class="sc-icon">🏆</div>
+      <div class="sc-num" id="st-done" style="color:var(--green)">0</div>
+      <div class="sc-lbl">Достигнуто целей</div>
+      <div class="sc-line" style="background:var(--green)"></div>
+    </div>
+    <div class="sc" onclick="goTo('leads',document.querySelector('#nb-leads').parentElement)">
+      <div class="sc-icon">🏫</div>
+      <div class="sc-num" id="st-leads" style="color:var(--blue)">0</div>
+      <div class="sc-lbl">Учебных центров</div>
+      <div class="sc-line" style="background:var(--blue)"></div>
+    </div>
+    <div class="sc" onclick="goTo('reports',document.querySelector('#nb-rep').parentElement)">
+      <div class="sc-icon">📝</div>
+      <div class="sc-num" id="st-rep" style="color:var(--purple)">0</div>
+      <div class="sc-lbl">Отчётов сегодня</div>
+      <div class="sc-line" style="background:var(--purple)"></div>
+    </div>
+  </div>
+  <div class="dg">
+    <div>
+      <div class="card">
+        <h3>📋 Активные задачи</h3>
+        <div id="d-tasks"></div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <h3>📝 Последние отчёты</h3>
+        <div id="d-reports"></div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h3>🎯 Воронка продаж</h3>
+        <div id="d-funnel"></div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <h3>⚡ Активность</h3>
+        <div id="d-feed" style="max-height:260px;overflow-y:auto"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TASKS ══ -->
+<div id="page-tasks" class="page">
+  <div class="ph">
+    <div><div class="pt">✅ Задачи</div><div class="ps">Доска задач проекта</div></div>
+    <div class="ph-actions">
+      <select id="f-assign" onchange="renderTasks()" style="width:150px;font-size:13px;padding:7px 10px">
+        <option value="">Все участники</option>
+      </select>
+      <select id="f-status" onchange="renderTasks()" style="width:150px;font-size:13px;padding:7px 10px">
+        <option value="">Все статусы</option>
+        <option value="pending">Не начато</option>
+        <option value="inprogress">В процессе</option>
+        <option value="done">Цель достигнута</option>
+        <option value="cancelled">Отменено</option>
+      </select>
+      <button class="btn bp" onclick="openM('mTask')">+ Новая задача</button>
+    </div>
+  </div>
+  <div class="board" id="task-board"></div>
+</div>
+
+<!-- ══ LEADS ══ -->
+<div id="page-leads" class="page">
+  <div class="ph">
+    <div><div class="pt">🎯 База лидов</div><div class="ps">Учебные центры Чирчика</div></div>
+    <div class="ph-actions">
+      <select id="f-lstatus" onchange="renderLeads()" style="width:150px;font-size:13px;padding:7px 10px">
+        <option value="">Все статусы</option>
+        <option value="new">Новый</option>
+        <option value="contact">Контакт</option>
+        <option value="demo">Демо</option>
+        <option value="signed">Подписал</option>
+        <option value="refused">Отказ</option>
+      </select>
+      <button class="btn bp" onclick="openM('mLead')">+ Добавить центр</button>
+    </div>
+  </div>
+  <div class="tw">
+    <table>
+      <thead><tr>
+        <th>Учебный центр</th><th>Контакт</th><th>Телефон</th>
+        <th>Статус</th><th>Ответственный</th><th>Встреча</th><th>Действия</th>
+      </tr></thead>
+      <tbody id="leads-tb"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══ REPORTS ══ -->
+<div id="page-reports" class="page">
+  <div class="ph">
+    <div><div class="pt">📝 Отчёты команды</div><div class="ps">Результаты и обновления</div></div>
+    <button class="btn bp" onclick="openM('mReport')">✍️ Написать отчёт</button>
+  </div>
+  <div class="tabs">
+    <button class="tab on" onclick="filterReports('all',this)">Все</button>
+    <button class="tab" onclick="filterReports('Карим',this)">Карим</button>
+    <button class="tab" onclick="filterReports('Релан',this)">Релан</button>
+  </div>
+  <div id="reports-list"></div>
+</div>
+
+<!-- ══ FILES ══ -->
+<div id="page-files" class="page">
+  <div class="ph">
+    <div><div class="pt">📁 Файлы и материалы</div><div class="ps">Общее хранилище команды</div></div>
+    <button class="btn bp" onclick="document.getElementById('file-upload-input').click()">+ Загрузить файл</button>
+  </div>
+  <input type="file" id="file-upload-input" multiple style="display:none" onchange="handleFileUpload(this)">
+
+  <!-- storage indicator -->
+  <div style="background:var(--s1);border:1px solid var(--b1);border-radius:var(--r2);padding:16px 20px;margin-bottom:20px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:12px;font-weight:700;color:var(--muted2)">ИСПОЛЬЗОВАНО ХРАНИЛИЩЕ</span>
+      <span style="font-size:12px;font-weight:700" id="storage-text">0 KB / 4 MB</span>
+    </div>
+    <div class="storage-bar"><div class="storage-fill" id="storage-fill" style="width:0%"></div></div>
+    <div style="font-size:11px;color:var(--muted);margin-top:6px">
+      ⚠️ Файлы хранятся в браузере (localStorage). Рекомендуется файлы до 500 KB. Ссылки можно добавить без ограничений.
+    </div>
+  </div>
+
+  <!-- upload zone -->
+  <div class="file-zone" id="drop-zone"
+    ondragover="event.preventDefault();this.classList.add('drag')"
+    ondragleave="this.classList.remove('drag')"
+    ondrop="handleDrop(event)"
+    onclick="document.getElementById('file-upload-input').click()">
+    <div style="font-size:28px;margin-bottom:6px">📎</div>
+    <p>Перетащите файлы сюда или нажмите для выбора</p>
+    <small>PDF, DOCX, PNG, JPG, XLSX и другие · до 500 KB каждый</small>
+  </div>
+
+  <!-- add link -->
+  <div style="display:flex;gap:8px;margin-bottom:20px">
+    <input id="link-url" placeholder="Вставьте ссылку (Google Docs, Figma, Notion...)">
+    <input id="link-name" placeholder="Название" style="width:200px">
+    <button class="btn bg" onclick="addLink()">+ Ссылка</button>
+  </div>
+
+  <!-- filter tabs -->
+  <div class="tabs">
+    <button class="tab on" onclick="filterFiles('all',this)">Все</button>
+    <button class="tab" onclick="filterFiles('file',this)">Файлы</button>
+    <button class="tab" onclick="filterFiles('link',this)">Ссылки</button>
+  </div>
+  <div class="fi-list" id="files-list"></div>
+</div>
+
+<!-- ══ TEAM ══ -->
+<div id="page-team" class="page">
+  <div class="ph">
+    <div><div class="pt">👥 Команда</div><div class="ps">Участники и их прогресс</div></div>
+    <button class="btn bp" id="add-member-btn" onclick="openM('mMember')">+ Добавить</button>
+  </div>
+  <div class="tg" id="team-grid"></div>
+</div>
+
+</main>
+</div>
+
+<!-- ══ MODALS ══ -->
+
+<!-- Task -->
+<div class="ov" id="mTask"><div class="modal">
+  <h2 id="mTask-title">✅ Новая задача</h2>
+  <div class="fg"><label>Название</label><input id="t-name" placeholder="Что нужно сделать?"></div>
+  <div class="fg"><label>Описание / детали</label><textarea id="t-desc" placeholder="Подробности, критерии выполнения..."></textarea></div>
+  <div class="g2">
+    <div class="fg"><label>Исполнитель</label><select id="t-who"><option value="">— Не назначен</option></select></div>
+    <div class="fg"><label>Приоритет</label>
+      <select id="t-prio">
+        <option value="high">🔴 Высокий</option>
+        <option value="medium" selected>🟡 Средний</option>
+        <option value="low">🟢 Низкий</option>
+      </select>
+    </div>
+    <div class="fg"><label>Статус</label>
+      <select id="t-status">
+        <option value="pending">⏸ Не начато</option>
+        <option value="inprogress">🔄 В процессе</option>
+        <option value="done">🏆 Цель достигнута</option>
+        <option value="cancelled">❌ Отменено</option>
+      </select>
+    </div>
+    <div class="fg"><label>Дедлайн</label><input type="date" id="t-due"></div>
+  </div>
+  <div class="ma">
+    <button class="btn bp" onclick="saveTask()">Сохранить</button>
+    <button class="btn bg" onclick="closeM('mTask')">Отмена</button>
+  </div>
+</div></div>
+
+<!-- Lead -->
+<div class="ov" id="mLead"><div class="modal">
+  <h2>🎯 Учебный центр</h2>
+  <div class="fg"><label>Название центра</label><input id="l-name" placeholder="Brilliance Academy..."></div>
+  <div class="g2">
+    <div class="fg"><label>Директор / контакт</label><input id="l-who" placeholder="Имя"></div>
+    <div class="fg"><label>Телефон</label><input id="l-phone" placeholder="+998..."></div>
+    <div class="fg"><label>Адрес / район</label><input id="l-addr" placeholder="ул. Навои, 12"></div>
+    <div class="fg"><label>Кол-во учеников (прим.)</label><input id="l-size" type="number" placeholder="200"></div>
+    <div class="fg"><label>Статус</label>
+      <select id="l-status">
+        <option value="new">🆕 Новый</option>
+        <option value="contact">📞 Контакт</option>
+        <option value="demo">🎬 Демо назначено</option>
+        <option value="signed">✅ Подписал договор</option>
+        <option value="refused">❌ Отказ</option>
+      </select>
+    </div>
+    <div class="fg"><label>Ответственный</label><select id="l-owner"><option value="">—</option></select></div>
+  </div>
+  <div class="fg"><label>Дата встречи</label><input type="date" id="l-date"></div>
+  <div class="fg"><label>Заметки</label><textarea id="l-notes" placeholder="Что обсудили, возражения..."></textarea></div>
+  <div class="ma">
+    <button class="btn bp" onclick="saveLead()">Сохранить</button>
+    <button class="btn bg" onclick="closeM('mLead')">Отмена</button>
+  </div>
+</div></div>
+
+<!-- Task Detail -->
+<div class="ov" id="mDetail"><div class="modal wide" id="mDetail-body"></div></div>
+
+<!-- Lead Detail -->
+<div class="ov" id="mLeadDetail"><div class="modal wide" id="mLeadDetail-body"></div></div>
+
+<!-- Report -->
+<div class="ov" id="mReport"><div class="modal">
+  <h2>✍️ Написать отчёт</h2>
+  <div class="fg"><label>Заголовок</label><input id="rep-title" placeholder="Что сделал сегодня?"></div>
+  <div class="fg"><label>Описание результата</label>
+    <textarea id="rep-body" placeholder="Опиши что было сделано, какие результаты, что планируешь завтра..." style="min-height:120px"></textarea>
+  </div>
+  <div class="fg"><label>Прикрепить файл (необязательно)</label>
+    <input type="file" id="rep-file-input" onchange="handleReportFile(this)" style="padding:8px">
+    <div id="rep-file-preview" style="font-size:12px;color:var(--muted2);margin-top:4px"></div>
+  </div>
+  <div class="fg"><label>Ссылка</label><input id="rep-link" placeholder="https://..."></div>
+  <div class="ma">
+    <button class="btn bp" onclick="saveReport()">Опубликовать</button>
+    <button class="btn bg" onclick="closeM('mReport');repFileData=null">Отмена</button>
+  </div>
+</div></div>
+
+<!-- Member -->
+<div class="ov" id="mMember"><div class="modal">
+  <h2>👤 Добавить участника</h2>
+  <div class="fg"><label>Имя</label><input id="mm-name" placeholder="Имя"></div>
+  <div class="fg"><label>Роль</label><input id="mm-role" placeholder="Маркетолог, Дизайнер..."></div>
+  <div class="fg"><label>Цвет аватара</label>
+    <select id="mm-color">
+      <option value="#f5c842">Золотой</option>
+      <option value="#4d9fff">Синий</option>
+      <option value="#3ddc84">Зелёный</option>
+      <option value="#ff4d6d">Красный</option>
+      <option value="#9b6dff">Фиолетовый</option>
+    </select>
+  </div>
+  <div class="ma">
+    <button class="btn bp" onclick="saveMember()">Добавить</button>
+    <button class="btn bg" onclick="closeM('mMember')">Отмена</button>
+  </div>
+</div></div>
+
+<div class="notif" id="notif"></div>
+
+<script>
+// ══════════════════════════════════════════════
+// STORAGE
+// ══════════════════════════════════════════════
+const K={tasks:'ec_tasks',leads:'ec_leads',members:'ec_members',reports:'ec_reports',files:'ec_files',activity:'ec_activity'};
+const ld=k=>{try{return JSON.parse(localStorage.getItem(k))||[]}catch{return[]}};
+const sv=(k,d)=>localStorage.setItem(k,JSON.stringify(d));
+
+// ══════════════════════════════════════════════
+// SESSION
+// ══════════════════════════════════════════════
+let CUR={name:'',role:'',color:'#f5c842'};
+function login(name,role,color){
+  CUR={name,role,color};
+  sessionStorage.setItem('ec_who',JSON.stringify(CUR));
+  document.getElementById('login-screen').style.display='none';
+  initUI();render();
+}
+function logout(){
+  sessionStorage.removeItem('ec_who');
+  document.getElementById('login-screen').style.display='flex';
+}
+function initUI(){
+  document.getElementById('sb-who').textContent=CUR.role;
+  document.getElementById('u-av').textContent=CUR.name[0];
+  document.getElementById('u-av').style.background=CUR.color;
+  document.getElementById('u-name').textContent=CUR.name;
+  document.getElementById('u-role').textContent=CUR.role;
+  // Карим sees add-member, Релан doesn't (simple access control)
+  document.getElementById('add-member-btn').style.display=CUR.name==='Карим'?'':'none';
+  document.getElementById('dash-date').textContent='Сегодня '+new Date().toLocaleDateString('ru',{weekday:'long',day:'numeric',month:'long'});
+}
+// Check session
+const saved=sessionStorage.getItem('ec_who');
+if(saved){try{CUR=JSON.parse(saved);document.getElementById('login-screen').style.display='none';initUI();}catch{}}
+
+// ══════════════════════════════════════════════
+// SEED DATA
+// ══════════════════════════════════════════════
+function seed(){
+  if(!ld(K.members).length){
+    sv(K.members,[
+      {id:'m1',name:'Карим',role:'Основатель / Dev',color:'#f5c842'},
+      {id:'m2',name:'Релан',role:'Маркетинг',color:'#4d9fff'}
+    ]);
+  }
+  if(!ld(K.tasks).length){
+    sv(K.tasks,[
+      {id:'t1',name:'Собрать БД потенциальных клиентов в Чирчике',desc:'Найти все учебные центры города, собрать контакты директоров. Цель: минимум 30 центров.',status:'pending',priority:'high',who:'Релан',due:'',comments:[],attachments:[]},
+      {id:'t2',name:'Провести обучение команды (Карим и Релан)',desc:'Обучить команду работе с системой перед первыми демо.',status:'pending',priority:'high',who:'Карим',due:'',comments:[],attachments:[]},
+      {id:'t3',name:'Создать план продаж',desc:'Расписать этапы продаж, скрипты разговоров, цели по неделям.',status:'pending',priority:'high',who:'Карим',due:'',comments:[],attachments:[]},
+      {id:'t4',name:'Подготовить презентацию для клиентов',desc:'Слайды с описанием CRM, выгодами для учебного центра, ценой.',status:'pending',priority:'high',who:'Релан',due:'',comments:[],attachments:[]},
+      {id:'t5',name:'Создать план продвижения в соц сетях + сюжет',desc:'Instagram, Telegram — контент-план на 30 дней, сторис-план.',status:'pending',priority:'medium',who:'Релан',due:'',comments:[],attachments:[]},
+      {id:'t6',name:'Разобраться с пробным периодом (условия MVP)',desc:'Условия бесплатного MVP: срок, ограничения, переход на платную версию.',status:'pending',priority:'high',who:'Карим',due:'',comments:[],attachments:[]},
+      {id:'t7',name:'Финализировать ценообразование',desc:'1 500 000 сум/мес — обоснование, тарифы, скидки при раннем подключении.',status:'pending',priority:'medium',who:'Карим',due:'',comments:[],attachments:[]},
+      {id:'t8',name:'Придумать название CRM системы',desc:'Название, домен, айдентика. Что-то понятное для рынка Узбекистана.',status:'pending',priority:'medium',who:'Карим',due:'',comments:[],attachments:[]},
+      {id:'t9',name:'Воскресенье — встреча команды',desc:'Синхронизация: прогресс по всем задачам, планы на неделю.',status:'pending',priority:'low',who:'Релан',due:'',comments:[],attachments:[]},
+    ]);
+  }
+}
+seed();
+
+// ══════════════════════════════════════════════
+// ACTIVITY LOG
+// ══════════════════════════════════════════════
+function logActivity(text){
+  const log=ld(K.activity);
+  log.unshift({text,who:CUR.name,time:new Date().toLocaleString('ru')});
+  sv(K.activity,log.slice(0,50));
+}
+
+// ══════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════
+function goTo(pg,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nav').forEach(n=>n.classList.remove('on'));
+  document.getElementById('page-'+pg).classList.add('on');
+  if(btn)btn.classList.add('on');
+  renderPage(pg);
+  if(window.innerWidth<=900)document.getElementById('sidebar').classList.remove('open');
+}
+function renderPage(pg){
+  if(pg==='dash')renderDash();
+  if(pg==='tasks')renderTasks();
+  if(pg==='leads')renderLeads();
+  if(pg==='reports')renderReports();
+  if(pg==='files')renderFiles();
+  if(pg==='team')renderTeam();
+}
+function render(){
+  updateBadges();
+  const active=document.querySelector('.page.on');
+  if(active)renderPage(active.id.replace('page-',''));
+}
+
+function updateBadges(){
+  const tasks=ld(K.tasks);
+  const leads=ld(K.leads);
+  const reps=ld(K.reports);
+  document.getElementById('nb-tasks').textContent=tasks.filter(t=>t.status==='inprogress').length;
+  document.getElementById('nb-leads').textContent=leads.length;
+  const today=new Date().toDateString();
+  document.getElementById('nb-rep').textContent=reps.filter(r=>new Date(r.ts).toDateString()===today).length;
+}
+
+// ══════════════════════════════════════════════
+// MODALS
+// ══════════════════════════════════════════════
+let editTask=null,editLead=null;
+function openM(id){
+  populateSelects();
+  document.getElementById(id).classList.add('on');
+}
+function closeM(id){
+  document.getElementById(id).classList.remove('on');
+  editTask=null;editLead=null;
+}
+document.querySelectorAll('.ov').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('on')}));
+function populateSelects(){
+  const ms=ld(K.members);
+  ['t-who','l-owner'].forEach(id=>{
+    const s=document.getElementById(id);
+    if(!s)return;
+    const v=s.value;
+    s.innerHTML='<option value="">— Не назначен</option>'+ms.map(m=>`<option value="${m.name}">${m.name}</option>`).join('');
+    s.value=v;
+  });
+  const fa=document.getElementById('f-assign');
+  if(fa){const v=fa.value;fa.innerHTML='<option value="">Все участники</option>'+ms.map(m=>`<option value="${m.name}">${m.name}</option>`).join('');fa.value=v;}
+}
+
+function notify(msg){
+  const n=document.getElementById('notif');
+  n.textContent=msg;n.classList.add('show');
+  setTimeout(()=>n.classList.remove('show'),2500);
+}
+
+// ══════════════════════════════════════════════
+// STATUS / PRIORITY HELPERS
+// ══════════════════════════════════════════════
+const SL={pending:'⏸ Не начато',inprogress:'🔄 В процессе',done:'🏆 Цель достигнута',cancelled:'❌ Отменено'};
+const SC={pending:'b-pending',inprogress:'b-inprogress',done:'b-done',cancelled:'b-cancelled'};
+const LS={new:'🆕 Новый',contact:'📞 Контакт',demo:'🎬 Демо',signed:'✅ Подписал',refused:'❌ Отказ'};
+const LC={new:'b-new',contact:'b-contact',demo:'b-demo',signed:'b-signed',refused:'b-refused'};
+
+// ══════════════════════════════════════════════
+// TASKS
+// ══════════════════════════════════════════════
+function saveTask(){
+  const name=document.getElementById('t-name').value.trim();
+  if(!name){alert('Введите название');return;}
+  const tasks=ld(K.tasks);
+  const obj={
+    id:editTask||'t'+Date.now(),
+    name,desc:document.getElementById('t-desc').value,
+    who:document.getElementById('t-who').value,
+    priority:document.getElementById('t-prio').value,
+    status:document.getElementById('t-status').value,
+    due:document.getElementById('t-due').value,
+    comments:[],attachments:[]
+  };
+  if(editTask){
+    const i=tasks.findIndex(t=>t.id===editTask);
+    if(i!==-1){obj.comments=tasks[i].comments||[];obj.attachments=tasks[i].attachments||[];tasks[i]=obj;}
+  }else{
+    tasks.push(obj);
+    logActivity(`<b>${CUR.name}</b> создал задачу «${name}»`);
+  }
+  sv(K.tasks,tasks);closeM('mTask');render();notify('✅ Задача сохранена');
+}
+
+function deleteTask(id){
+  if(!confirm('Удалить задачу?'))return;
+  const t=ld(K.tasks).find(x=>x.id===id);
+  sv(K.tasks,ld(K.tasks).filter(t=>t.id!==id));
+  if(t)logActivity(`<b>${CUR.name}</b> удалил задачу «${t.name}»`);
+  closeM('mDetail');render();notify('🗑 Задача удалена');
+}
+
+function updateTaskField(id,field,value){
+  const tasks=ld(K.tasks);
+  const t=tasks.find(t=>t.id===id);
+  if(t){
+    const old=t[field];t[field]=value;sv(K.tasks,tasks);
+    if(field==='status')logActivity(`<b>${CUR.name}</b> изменил статус «${t.name}» → ${SL[value]||value}`);
+    render();
+  }
+}
+
+function addComment(taskId){
+  const text=document.getElementById('cmt-'+taskId).value.trim();
+  if(!text)return;
+  const tasks=ld(K.tasks);
+  const t=tasks.find(t=>t.id===taskId);
+  if(!t)return;
+  if(!t.comments)t.comments=[];
+  t.comments.push({who:CUR.name,text,time:new Date().toLocaleString('ru')});
+  sv(K.tasks,tasks);logActivity(`<b>${CUR.name}</b> прокомментировал «${t.name}»`);
+  openDetail(taskId);render();
+}
+
+function addTaskFile(taskId){
+  const input=document.getElementById('tfile-'+taskId);
+  const name=document.getElementById('tlink-'+taskId).value.trim();
+  if(!name&&(!input||!input.files.length)){notify('Введите ссылку или выберите файл');return;}
+  const tasks=ld(K.tasks);
+  const t=tasks.find(t=>t.id===taskId);
+  if(!t)return;
+  if(!t.attachments)t.attachments=[];
+  if(name){
+    t.attachments.push({type:'link',name,url:name,who:CUR.name,time:new Date().toLocaleString('ru')});
+    sv(K.tasks,tasks);logActivity(`<b>${CUR.name}</b> прикрепил ссылку к «${t.name}»`);
+    openDetail(taskId);render();
+  } else if(input&&input.files.length){
+    const file=input.files[0];
+    if(file.size>1024*1024){notify('⚠️ Файл слишком большой (макс 1MB)');return;}
+    const reader=new FileReader();
+    reader.onload=e=>{
+      t.attachments.push({type:'file',name:file.name,size:file.size,data:e.target.result,who:CUR.name,time:new Date().toLocaleString('ru')});
+      sv(K.tasks,tasks);logActivity(`<b>${CUR.name}</b> загрузил файл в «${t.name}»`);
+      openDetail(taskId);render();
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+function downloadFile(data,name){
+  const a=document.createElement('a');a.href=data;a.download=name;a.click();
+}
+
+function openDetail(id){
+  const t=ld(K.tasks).find(t=>t.id===id);if(!t)return;
+  const canEdit=CUR.name==='Карим'||t.who===CUR.name;
+  document.getElementById('mDetail-body').innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:4px">
+      <div class="det-title">${t.name}</div>
+      ${canEdit?`<button class="btn br bsm" onclick="deleteTask('${t.id}')">🗑</button>`:''}
+    </div>
+    <div class="det-desc">${t.desc||'Нет описания'}</div>
+    <div class="det-grid">
+      <div class="di"><label>Статус</label>
+        <select onchange="updateTaskField('${t.id}','status',this.value);openDetail('${t.id}')" ${!canEdit?'disabled':''}>
+          ${Object.entries(SL).map(([v,l])=>`<option value="${v}" ${t.status===v?'selected':''}>${l}</option>`).join('')}
+        </select>
+      </div>
+      <div class="di"><label>Приоритет</label><span class="badge b-${t.priority}">${{high:'🔴 Высокий',medium:'🟡 Средний',low:'🟢 Низкий'}[t.priority]}</span></div>
+      <div class="di"><label>Исполнитель</label><span>${t.who||'—'}</span></div>
+      <div class="di"><label>Дедлайн</label>
+        <input type="date" value="${t.due||''}" onchange="updateTaskField('${t.id}','due',this.value)" ${!canEdit?'disabled':''} style="background:transparent;border:none;padding:0;color:var(--text);font-size:13px">
+      </div>
+    </div>
+
+    <div class="cs">
+      <h4>💬 Комментарии (${(t.comments||[]).length})</h4>
+      ${(t.comments||[]).map(c=>`
+        <div class="cm">
+          <div class="cm-who">${c.who}</div>
+          <div class="cm-text">${c.text}</div>
+          <div class="cm-time">${c.time}</div>
+        </div>`).join('')}
+      <div class="ci-row">
+        <input id="cmt-${t.id}" placeholder="Написать комментарий...">
+        <button class="btn bp bsm" onclick="addComment('${t.id}')">Отправить</button>
+      </div>
+    </div>
+
+    <div class="cs">
+      <h4>📎 Файлы и ссылки (${(t.attachments||[]).length})</h4>
+      ${(t.attachments||[]).map((a,i)=>`
+        <div class="fi-item">
+          <div class="fi-icon">${a.type==='link'?'🔗':'📄'}</div>
+          <div class="fi-info">
+            <div class="fi-name">${a.name}</div>
+            <div class="fi-meta">${a.who} · ${a.time}</div>
+          </div>
+          <div class="fi-actions">
+            ${a.type==='link'?`<button class="btn bg bsm" onclick="window.open('${a.url}','_blank')">Открыть</button>`:`<button class="btn bg bsm" onclick="downloadFile('${a.data}','${a.name}')">Скачать</button>`}
+          </div>
+        </div>`).join('')}
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+        <input id="tlink-${t.id}" placeholder="Вставить ссылку (Google Docs, Figma...)" style="flex:1;min-width:180px">
+        <input type="file" id="tfile-${t.id}" style="display:none" onchange="addTaskFile('${t.id}')">
+        <button class="btn bg bsm" onclick="document.getElementById('tfile-${t.id}').click()">📎 Файл</button>
+        <button class="btn bp bsm" onclick="addTaskFile('${t.id}')">+ Добавить</button>
+      </div>
+    </div>
+
+    <div class="ma">
+      ${canEdit?`<button class="btn bg" onclick="editTaskFn('${t.id}')">✏️ Редактировать</button>`:''}
+      <button class="btn bg" onclick="closeM('mDetail')">Закрыть</button>
+    </div>
+  `;
+  openM('mDetail');
+}
+
+function editTaskFn(id){
+  const t=ld(K.tasks).find(t=>t.id===id);if(!t)return;
+  closeM('mDetail');
+  setTimeout(()=>{
+    editTask=id;
+    populateSelects();
+    document.getElementById('mTask-title').textContent='✏️ Редактировать задачу';
+    document.getElementById('t-name').value=t.name;
+    document.getElementById('t-desc').value=t.desc||'';
+    document.getElementById('t-who').value=t.who||'';
+    document.getElementById('t-prio').value=t.priority;
+    document.getElementById('t-status').value=t.status;
+    document.getElementById('t-due').value=t.due||'';
+    openM('mTask');
+  },100);
+}
+
+function renderTasks(){
+  const fa=document.getElementById('f-assign')?.value||'';
+  const fs=document.getElementById('f-status')?.value||'';
+  let tasks=ld(K.tasks).filter(t=>{
+    if(fa&&t.who!==fa)return false;
+    if(fs&&t.status!==fs)return false;
+    return true;
+  });
+  const cols=['pending','inprogress','done','cancelled'];
+  const board=document.getElementById('task-board');
+  if(!board)return;
+  board.innerHTML=cols.map(col=>{
+    const ct=tasks.filter(t=>t.status===col);
+    return `<div class="kcol">
+      <div class="kch">
+        <span class="kct">${SL[col]}</span>
+        <span class="kcc">${ct.length}</span>
+      </div>
+      ${ct.map(t=>`
+        <div class="tc" onclick="openDetail('${t.id}')">
+          <div class="tc-name">${t.name}</div>
+          <div class="tc-foot">
+            <span class="tc-who">${t.who||'—'}</span>
+            <div class="tc-metas">
+              ${(t.attachments||[]).length?`<span style="font-size:10px;color:var(--muted)">📎${t.attachments.length}</span>`:''}
+              ${(t.comments||[]).length?`<span style="font-size:10px;color:var(--muted)">💬${t.comments.length}</span>`:''}
+              <div class="prio ${t.priority}"></div>
+            </div>
+          </div>
+          ${t.due?`<div style="font-size:10px;color:var(--muted);margin-top:5px">📅 ${t.due}</div>`:''}
+        </div>`).join('')}
+      ${!ct.length?'<div class="empty" style="padding:20px 0;font-size:12px">Пусто</div>':''}
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════
+// LEADS
+// ══════════════════════════════════════════════
+function saveLead(){
+  const name=document.getElementById('l-name').value.trim();
+  if(!name){alert('Введите название');return;}
+  const leads=ld(K.leads);
+  const obj={
+    id:editLead||'l'+Date.now(),
+    name,who:document.getElementById('l-who').value,
+    phone:document.getElementById('l-phone').value,
+    addr:document.getElementById('l-addr').value,
+    size:document.getElementById('l-size').value,
+    status:document.getElementById('l-status').value,
+    owner:document.getElementById('l-owner').value,
+    date:document.getElementById('l-date').value,
+    notes:document.getElementById('l-notes').value,
+    comments:[]
+  };
+  if(editLead){const i=leads.findIndex(l=>l.id===editLead);if(i!==-1){obj.comments=leads[i].comments||[];leads[i]=obj;}}
+  else{leads.push(obj);logActivity(`<b>${CUR.name}</b> добавил лид «${name}»`);}
+  sv(K.leads,leads);closeM('mLead');render();notify('🎯 Лид сохранён');
+}
+function deleteLead(id){
+  if(!confirm('Удалить?'))return;
+  const l=ld(K.leads).find(x=>x.id===id);
+  sv(K.leads,ld(K.leads).filter(x=>x.id!==id));
+  if(l)logActivity(`<b>${CUR.name}</b> удалил лид «${l.name}»`);
+  closeM('mLeadDetail');render();notify('🗑 Удалено');
+}
+function updateLeadStatus(id,status){
+  const leads=ld(K.leads);const l=leads.find(l=>l.id===id);
+  if(l){l.status=status;sv(K.leads,leads);logActivity(`<b>${CUR.name}</b> изменил статус «${l.name}» → ${LS[status]}`);render();}
+}
+function addLeadComment(leadId){
+  const text=document.getElementById('lcmt-'+leadId).value.trim();
+  if(!text)return;
+  const leads=ld(K.leads);const l=leads.find(l=>l.id===leadId);
+  if(!l)return;if(!l.comments)l.comments=[];
+  l.comments.push({who:CUR.name,text,time:new Date().toLocaleString('ru')});
+  sv(K.leads,leads);openLeadDetail(leadId);render();
+}
+function openLeadDetail(id){
+  const l=ld(K.leads).find(l=>l.id===id);if(!l)return;
+  document.getElementById('mLeadDetail-body').innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:4px">
+      <div>
+        <div class="det-title">${l.name}</div>
+        <div class="det-desc">${l.who||''} ${l.phone?'· '+l.phone:''} ${l.addr?'· '+l.addr:''}</div>
+      </div>
+      <button class="btn br bsm" onclick="deleteLead('${l.id}')">🗑</button>
+    </div>
+    <div class="det-grid">
+      <div class="di"><label>Статус</label>
+        <select onchange="updateLeadStatus('${l.id}',this.value);openLeadDetail('${l.id}')">
+          ${Object.entries(LS).map(([v,lb])=>`<option value="${v}" ${l.status===v?'selected':''}>${lb}</option>`).join('')}
+        </select>
+      </div>
+      <div class="di"><label>Ответственный</label><span>${l.owner||'—'}</span></div>
+      <div class="di"><label>Встреча</label><span>${l.date||'—'}</span></div>
+      <div class="di"><label>Учеников (прим.)</label><span>${l.size||'—'}</span></div>
+    </div>
+    ${l.notes?`<div style="background:var(--s2);border-radius:8px;padding:12px;font-size:13px;color:var(--muted2);line-height:1.5;margin-bottom:4px">${l.notes}</div>`:''}
+    <div class="cs">
+      <h4>💬 Переговоры (${(l.comments||[]).length})</h4>
+      ${(l.comments||[]).map(c=>`<div class="cm"><div class="cm-who">${c.who}</div><div class="cm-text">${c.text}</div><div class="cm-time">${c.time}</div></div>`).join('')}
+      <div class="ci-row">
+        <input id="lcmt-${l.id}" placeholder="Что обсудили на встрече?">
+        <button class="btn bp bsm" onclick="addLeadComment('${l.id}')">Записать</button>
+      </div>
+    </div>
+    <div class="ma">
+      <button class="btn bg" onclick="editLeadFn('${l.id}')">✏️ Редактировать</button>
+      <button class="btn bg" onclick="closeM('mLeadDetail')">Закрыть</button>
+    </div>
+  `;
+  openM('mLeadDetail');
+}
+function editLeadFn(id){
+  const l=ld(K.leads).find(l=>l.id===id);if(!l)return;
+  closeM('mLeadDetail');
+  setTimeout(()=>{
+    editLead=id;populateSelects();
+    document.getElementById('l-name').value=l.name;
+    document.getElementById('l-who').value=l.who||'';
+    document.getElementById('l-phone').value=l.phone||'';
+    document.getElementById('l-addr').value=l.addr||'';
+    document.getElementById('l-size').value=l.size||'';
+    document.getElementById('l-status').value=l.status;
+    document.getElementById('l-owner').value=l.owner||'';
+    document.getElementById('l-date').value=l.date||'';
+    document.getElementById('l-notes').value=l.notes||'';
+    openM('mLead');
+  },100);
+}
+function renderLeads(){
+  const fs=document.getElementById('f-lstatus')?.value||'';
+  const leads=ld(K.leads).filter(l=>!fs||l.status===fs);
+  const tb=document.getElementById('leads-tb');if(!tb)return;
+  tb.innerHTML=leads.length?leads.map(l=>`
+    <tr onclick="openLeadDetail('${l.id}')">
+      <td><strong>${l.name}</strong>${l.size?`<div style="font-size:11px;color:var(--muted)">${l.size} учеников</div>`:''}</td>
+      <td>${l.who||'—'}</td>
+      <td>${l.phone||'—'}</td>
+      <td><span class="badge ${LC[l.status]}">${LS[l.status]}</span></td>
+      <td>${l.owner||'—'}</td>
+      <td>${l.date||'—'}</td>
+      <td onclick="event.stopPropagation()">
+        <select class="btn bg bsm" style="padding:4px 8px" onchange="updateLeadStatus('${l.id}',this.value);this.value=''">
+          <option value="">Статус ↓</option>
+          ${Object.entries(LS).map(([v,lb])=>`<option value="${v}">${lb}</option>`).join('')}
+        </select>
+      </td>
+    </tr>`).join(''):`<tr><td colspan="7" class="empty">Нет лидов. Добавьте первый учебный центр!</td></tr>`;
+}
+
+// ══════════════════════════════════════════════
+// REPORTS
+// ══════════════════════════════════════════════
+let repFileData=null;
+function handleReportFile(input){
+  const file=input.files[0];if(!file)return;
+  if(file.size>1024*1024){notify('⚠️ Файл слишком большой (макс 1MB)');return;}
+  const reader=new FileReader();
+  reader.onload=e=>{
+    repFileData={name:file.name,size:file.size,data:e.target.result};
+    document.getElementById('rep-file-preview').textContent='📎 '+file.name+' ('+Math.round(file.size/1024)+' KB)';
+  };
+  reader.readAsDataURL(file);
+}
+function saveReport(){
+  const title=document.getElementById('rep-title').value.trim();
+  const body=document.getElementById('rep-body').value.trim();
+  if(!title||!body){alert('Заполните заголовок и описание');return;}
+  const reps=ld(K.reports);
+  reps.unshift({
+    id:'r'+Date.now(),who:CUR.name,color:CUR.color,
+    title,body,
+    link:document.getElementById('rep-link').value.trim(),
+    file:repFileData,
+    ts:new Date().toISOString(),
+    time:new Date().toLocaleString('ru')
+  });
+  sv(K.reports,reps);
+  logActivity(`<b>${CUR.name}</b> опубликовал отчёт «${title}»`);
+  repFileData=null;
+  closeM('mReport');render();notify('📝 Отчёт опубликован');
+}
+let repFilter='all';
+function filterReports(f,btn){
+  repFilter=f;
+  document.querySelectorAll('#page-reports .tab').forEach(t=>t.classList.remove('on'));
+  btn.classList.add('on');
+  renderReports();
+}
+function renderReports(){
+  const reps=ld(K.reports).filter(r=>repFilter==='all'||r.who===repFilter);
+  const el=document.getElementById('reports-list');if(!el)return;
+  el.innerHTML=reps.length?reps.map(r=>`
+    <div class="report-card">
+      <div class="report-head">
+        <div class="report-av" style="background:${r.color||'#f5c842'}">${r.who[0]}</div>
+        <div>
+          <div class="report-who">${r.who}</div>
+          <div class="report-time">${r.time}</div>
+        </div>
+      </div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:6px">${r.title}</div>
+      <div class="report-text">${r.body}</div>
+      ${r.link?`<div class="report-files"><a href="${r.link}" target="_blank" class="report-file">🔗 Ссылка</a></div>`:''}
+      ${r.file?`<div class="report-files"><div class="report-file" onclick="downloadFile('${r.file.data}','${r.file.name}')">📄 ${r.file.name}</div></div>`:''}
+    </div>`).join(''):`<div class="empty"><div class="empty-big">📭</div>Отчётов пока нет</div>`;
+}
+
+// ══════════════════════════════════════════════
+// FILES
+// ══════════════════════════════════════════════
+let fileFilter='all';
+function filterFiles(f,btn){
+  fileFilter=f;
+  document.querySelectorAll('#page-files .tab').forEach(t=>t.classList.remove('on'));
+  btn.classList.add('on');renderFiles();
+}
+function handleDrop(e){
+  e.preventDefault();document.getElementById('drop-zone').classList.remove('drag');
+  const files=[...e.dataTransfer.files];
+  processFiles(files);
+}
+function handleFileUpload(input){
+  processFiles([...input.files]);input.value='';
+}
+function processFiles(files){
+  files.forEach(file=>{
+    if(file.size>1024*600){notify('⚠️ '+file.name+' слишком большой (макс 600 KB)');return;}
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const items=ld(K.files);
+      items.unshift({id:'f'+Date.now()+Math.random(),type:'file',name:file.name,
+        size:file.size,data:e.target.result,who:CUR.name,time:new Date().toLocaleString('ru')});
+      sv(K.files,items);
+      logActivity(`<b>${CUR.name}</b> загрузил файл «${file.name}»`);
+      render();notify('📎 Файл загружен');
+    };
+    reader.readAsDataURL(file);
+  });
+}
+function addLink(){
+  const url=document.getElementById('link-url').value.trim();
+  const name=document.getElementById('link-name').value.trim()||url;
+  if(!url){notify('Введите ссылку');return;}
+  const items=ld(K.files);
+  items.unshift({id:'f'+Date.now(),type:'link',name,url,who:CUR.name,time:new Date().toLocaleString('ru')});
+  sv(K.files,items);
+  document.getElementById('link-url').value='';document.getElementById('link-name').value='';
+  logActivity(`<b>${CUR.name}</b> добавил ссылку «${name}»`);
+  render();notify('🔗 Ссылка добавлена');
+}
+function deleteFileItem(id){
+  sv(K.files,ld(K.files).filter(f=>f.id!==id));render();notify('🗑 Удалено');
+}
+function renderFiles(){
+  const items=ld(K.files).filter(f=>fileFilter==='all'||f.type===fileFilter);
+  const el=document.getElementById('files-list');if(!el)return;
+  // calc storage
+  const all=ld(K.files);
+  const totalBytes=JSON.stringify(all).length;
+  const maxBytes=4*1024*1024;
+  const pct=Math.min(100,Math.round(totalBytes/maxBytes*100));
+  const stFill=document.getElementById('storage-fill');
+  const stText=document.getElementById('storage-text');
+  if(stFill){stFill.style.width=pct+'%';stFill.className='storage-fill'+(pct>80?' warn':'');}
+  if(stText){
+    const kb=Math.round(totalBytes/1024);
+    stText.textContent=kb<1024?kb+' KB / 4 MB':Math.round(kb/1024*10)/10+' MB / 4 MB';
+  }
+  const icons={pdf:'📕',doc:'📘',docx:'📘',xls:'📗',xlsx:'📗',png:'🖼',jpg:'🖼',jpeg:'🖼',ppt:'📙',pptx:'📙'};
+  const getIcon=name=>{const ext=name.split('.').pop().toLowerCase();return icons[ext]||'📄';};
+  el.innerHTML=items.length?items.map(f=>`
+    <div class="fi-item">
+      <div class="fi-icon">${f.type==='link'?'🔗':getIcon(f.name)}</div>
+      <div class="fi-info">
+        <div class="fi-name">${f.name}</div>
+        <div class="fi-meta">${f.who} · ${f.time}${f.size?' · '+Math.round(f.size/1024)+' KB':''}</div>
+      </div>
+      <div class="fi-actions">
+        ${f.type==='link'?`<button class="btn bg bsm" onclick="window.open('${f.url}','_blank')">Открыть</button>`:
+          `<button class="btn bg bsm" onclick="downloadFile('${f.data}','${f.name}')">Скачать</button>`}
+        <button class="btn br bsm" onclick="deleteFileItem('${f.id}')">✕</button>
+      </div>
+    </div>`).join(''):`<div class="empty"><div class="empty-big">📭</div>Файлов пока нет</div>`;
+}
+
+// ══════════════════════════════════════════════
+// TEAM
+// ══════════════════════════════════════════════
+function saveMember(){
+  const name=document.getElementById('mm-name').value.trim();if(!name)return;
+  const ms=ld(K.members);
+  ms.push({id:'m'+Date.now(),name,role:document.getElementById('mm-role').value,color:document.getElementById('mm-color').value});
+  sv(K.members,ms);closeM('mMember');render();notify('👤 Участник добавлен');
+}
+function renderTeam(){
+  const ms=ld(K.members);const tasks=ld(K.tasks);
+  const el=document.getElementById('team-grid');if(!el)return;
+  el.innerHTML=ms.map(m=>{
+    const mt=tasks.filter(t=>t.who===m.name);
+    const md=mt.filter(t=>t.status==='done').length;
+    const mi=mt.filter(t=>t.status==='inprogress').length;
+    return `<div class="team-card">
+      <div class="tc-hdr">
+        <div class="tc-av" style="background:${m.color||'#f5c842'}">${m.name[0]}</div>
+        <div><div class="tc-nm">${m.name}</div><div class="tc-rl">${m.role}</div></div>
+      </div>
+      <div class="tc-nums">
+        <div class="tc-n"><div class="n">${mt.length}</div><div class="l">Задач</div></div>
+        <div class="tc-n"><div class="n" style="color:var(--green)">${md}</div><div class="l">Готово</div></div>
+        <div class="tc-n"><div class="n" style="color:var(--gold)">${mi}</div><div class="l">В работе</div></div>
+      </div>
+      <div class="pb"><div class="pf" style="width:${mt.length?Math.round(md/mt.length*100):0}%"></div></div>
+      <div class="tc-tasks">
+        ${mt.slice(0,4).map(t=>`
+          <div class="tc-task">
+            <div class="prio ${t.priority}"></div>
+            <span style="${t.status==='done'?'color:var(--muted);text-decoration:line-through':''}">
+              ${t.name.length>38?t.name.slice(0,38)+'…':t.name}
+            </span>
+          </div>`).join('')}
+        ${mt.length>4?`<div style="font-size:11px;color:var(--muted);margin-top:2px">+${mt.length-4} ещё</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════════
+function renderDash(){
+  const tasks=ld(K.tasks);const leads=ld(K.leads);
+  const reps=ld(K.reports);const log=ld(K.activity);
+  const done=tasks.filter(t=>t.status==='done').length;
+  const today=new Date().toDateString();
+  const todayReps=reps.filter(r=>new Date(r.ts).toDateString()===today).length;
+  document.getElementById('st-tasks').textContent=tasks.length;
+  document.getElementById('st-done').textContent=done;
+  document.getElementById('st-leads').textContent=leads.length;
+  document.getElementById('st-rep').textContent=todayReps;
+  document.getElementById('st-prog').style.width=tasks.length?Math.round(done/tasks.length*100)+'%':'0%';
+
+  // active tasks
+  const dt=document.getElementById('d-tasks');
+  const active=tasks.filter(t=>t.status!=='done'&&t.status!=='cancelled').slice(0,6);
+  dt.innerHTML=active.length?active.map(t=>`
+    <div class="tr-row" onclick="openDetail('${t.id}')">
+      <div>
+        <div class="tr-name">${t.name}</div>
+        <div style="font-size:11px;color:var(--muted2);margin-top:1px">${t.who||'Не назначен'}</div>
+      </div>
+      <div class="tr-r">
+        <div class="prio ${t.priority}"></div>
+        <span class="badge ${SC[t.status]}">${SL[t.status]}</span>
+      </div>
+    </div>`).join(''):`<div class="empty">Все задачи выполнены 🎉</div>`;
+
+  // recent reports
+  const dr=document.getElementById('d-reports');
+  dr.innerHTML=reps.slice(0,3).map(r=>`
+    <div style="padding:10px 0;border-bottom:1px solid var(--b1)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        <div style="width:24px;height:24px;border-radius:50%;background:${r.color||'#f5c842'};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#08090d">${r.who[0]}</div>
+        <span style="font-size:12px;font-weight:700;color:var(--muted2)">${r.who} · ${r.time}</span>
+      </div>
+      <div style="font-size:13px;font-weight:600">${r.title}</div>
+    </div>`).join('')||`<div class="empty" style="padding:20px 0;font-size:12px">Пока нет отчётов</div>`;
+
+  // funnel
+  const stages=['new','contact','demo','signed','refused'];
+  document.getElementById('d-funnel').innerHTML=stages.map(s=>{
+    const cnt=leads.filter(l=>l.status===s).length;
+    const pct=leads.length?Math.round(cnt/leads.length*100):0;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--b1)">
+      <span class="badge ${LC[s]}" style="min-width:90px;justify-content:center">${LS[s]}</span>
+      <div style="flex:1;height:5px;background:var(--b1);border-radius:99px;overflow:hidden">
+        <div style="height:100%;background:var(--gold);width:${pct}%;border-radius:99px;transition:width .4s"></div>
+      </div>
+      <span style="font-size:13px;font-weight:700;min-width:20px;text-align:right">${cnt}</span>
+    </div>`;
+  }).join('');
+
+  // activity
+  document.getElementById('d-feed').innerHTML=log.slice(0,15).map(e=>`
+    <div class="feed-item">
+      <div class="feed-dot"></div>
+      <div class="feed-body">
+        <div class="feed-text">${e.text}</div>
+        <div class="feed-time">${e.time}</div>
+      </div>
+    </div>`).join('')||'<div class="empty" style="font-size:12px">Активности пока нет</div>';
+}
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+populateSelects();
+if(saved)render();
+</script>
+</body>
+</html>
